@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meet People Concept</title>
+<style>
+:root{
+  --magenta:#c8286f; --magenta-soft:#fbe7f0;
+  --violet:#5b4ce0; --violet-soft:#ecebfc; --violet-dark:#2f2580;
+  --ink:#111; --muted:#6b6b6b; --line:#e7e7ea;
+  --bg:#f4f4f5; --card:#fff; --green:#3f8f3a;
+  --page:#e9e8f3;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink);background:var(--page);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+input,select,textarea{font:inherit;color:inherit}
+
+/* ---------- desktop layout: pitch + phone ---------- */
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:56px;padding:32px 24px}
+.pitch{max-width:400px}
+.pitch .tag{display:inline-block;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--violet);background:#fff;border:1px solid #d6d3f7;padding:4px 10px;border-radius:99px}
+.pitch h1{font-size:34px;line-height:1.15;margin:16px 0 12px;letter-spacing:-.01em}
+.pitch p{color:#3c3c44;line-height:1.55;margin-bottom:14px;font-size:15px}
+.pitch h3{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:22px 0 8px}
+.pitch ul{list-style:none}
+.pitch li{position:relative;padding-left:20px;margin:7px 0;line-height:1.45;font-size:14.5px;color:#2a2a30}
+.pitch li:before{content:"";position:absolute;left:0;top:7px;width:8px;height:8px;border-radius:50%;background:var(--magenta)}
+.pitch .hint{margin-top:22px;font-size:13px;color:var(--muted)}
+
+.phone{width:390px;height:844px;border-radius:52px;background:#111;padding:12px;box-shadow:0 30px 80px rgba(40,30,120,.25);flex:none}
+.screen{position:relative;width:100%;height:100%;border-radius:40px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column}
+
+@media (max-width:900px){
+  .stage{padding:0;display:block}
+  .pitch{display:none}
+  .phone{width:100%;height:100dvh;border-radius:0;padding:0;box-shadow:none}
+  .screen{border-radius:0}
+  .statusbar{display:none!important}
+}
+
+/* ---------- phone chrome ---------- */
+.statusbar{height:44px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px;font-weight:600;font-size:15px;background:inherit;position:relative;z-index:2}
+.statusbar .island{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:110px;height:30px;background:#000;border-radius:20px}
+.statusbar .right{display:flex;gap:6px;align-items:center;font-size:12px}
+.statusbar .batt{background:#111;color:#fff;border-radius:5px;padding:1px 5px;font-size:11px}
+
+.views{flex:1;position:relative;overflow:hidden}
+.view{position:absolute;inset:0;overflow-y:auto;display:none;padding-bottom:24px;-webkit-overflow-scrolling:touch}
+.view.active{display:block}
+.view::-webkit-scrollbar{display:none}
+
+.tabbar{flex:none;display:flex;justify-content:space-around;align-items:flex-start;background:#fff;border-top:1px solid #f0f0f2;padding:8px 4px 22px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--muted);flex:1;min-width:0}
+.tab svg{width:26px;height:26px;stroke:#555}
+.tab.active{color:var(--ink);font-weight:600}
+.tab.active svg{stroke:var(--magenta)}
+.tab .me{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#d9a77a,#8a5a3b);display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+.tab.active .me{outline:2px solid var(--magenta);outline-offset:1px}
+.tab.new{position:relative}
+.tab.new .dot{position:absolute;top:-4px;right:calc(50% - 22px);background:var(--magenta);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:99px;letter-spacing:.02em}
+
+/* ---------- generic ---------- */
+.pad{padding:0 20px}
+.bell{position:absolute;right:20px;top:8px;width:40px;height:40px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.bell b{position:absolute;top:-6px;right:-6px;background:var(--green);color:#fff;font-size:11px;border-radius:99px;padding:2px 6px;border:2px solid var(--bg)}
+.h-title{font-size:28px;font-weight:700;letter-spacing:-.01em}
+.section-title{font-size:18px;font-weight:700;margin:24px 0 12px}
+.card{background:var(--card);border-radius:12px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#d9a77a,#8a5a3b);display:grid;place-items:center;color:#fff;font-weight:700;font-size:26px;flex:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:99px;font-weight:600;padding:12px 20px}
+.btn-primary{background:var(--magenta);color:#fff}
+.btn-dark{background:#111;color:#fff}
+.btn-ghost{background:#fff;border:1.5px solid #111}
+.btn-block{width:100%}
+.muted{color:var(--muted)}
+.chev{width:18px;height:18px;stroke:#111;flex:none}
+
+/* home */
+.home-head{position:relative;padding:64px 20px 8px;display:flex;gap:18px;align-items:center}
+.home-head .name{font-size:28px;font-weight:700}
+.todo{display:flex;gap:10px;overflow-x:auto;padding:0 20px 4px;scrollbar-width:none}
+.todo::-webkit-scrollbar{display:none}
+.todo .card{flex:none;width:160px;height:130px;padding:0;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+.todo .ic{width:38px;height:38px;margin:10px 0 0 0;display:grid;place-items:center;background:#f1f1f3}
+.todo .ic.hot{background:var(--magenta)}
+.todo .card.hot{border:1.5px solid var(--magenta)}
+.todo .txt{padding:0 14px 14px;font-size:13px}
+.todo .txt b{display:block}
+.promo{margin:20px;border:1.5px solid var(--violet);background:var(--violet-soft);border-radius:12px;padding:18px;position:relative;overflow:hidden}
+.promo b{font-size:17px;display:block;margin-bottom:4px}
+.promo.meet{border-color:var(--magenta);background:var(--magenta-soft)}
+.promo .go{margin-top:12px}
+.match{margin:0 20px;padding:18px}
+.pill{display:inline-block;background:#f1f1f3;border-radius:6px;padding:4px 10px;font-size:13px}
+
+/* list rows (You) */
+.you-head{background:var(--violet-soft);padding:64px 20px 26px;position:relative;display:flex;align-items:center;gap:16px}
+.row{display:flex;align-items:center;gap:16px;padding:18px 0;border-bottom:1px solid var(--line)}
+.row svg.i{width:28px;height:28px;stroke:#111;flex:none}
+.row .t{flex:1}
+.row .s{font-size:14px;color:var(--muted);margin-top:2px}
+
+/* ---------- MEET ---------- */
+.meet-top{background:#fff;padding:14px 20px 0;position:sticky;top:0;z-index:5;border-bottom:1px solid var(--line)}
+.meet-top .titlebar{display:flex;align-items:center;justify-content:space-between}
+.loc-btn{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:14px;color:var(--violet);font-weight:600}
+.loc-btn svg{width:16px;height:16px;stroke:var(--violet)}
+.trip{display:inline-block;background:var(--violet);color:#fff;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;margin-top:6px}
+.icon-btn{width:40px;height:40px;border-radius:50%;background:#f1f1f3;display:grid;place-items:center}
+.icon-btn svg{width:20px;height:20px;stroke:#111}
+.seg{display:flex;gap:18px;margin-top:14px}
+.seg button{padding:10px 0;font-size:14px;color:var(--muted);border-bottom:2.5px solid transparent;font-weight:600}
+.seg button.on{color:var(--ink);border-color:var(--magenta)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 20px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid #d9d9de;background:#fff;border-radius:99px;padding:7px 13px;font-size:13px;white-space:nowrap}
+.chip.on{background:#111;color:#fff;border-color:#111}
+
+.newbies{margin:4px 20px 6px;padding:14px 16px;border-radius:12px;background:var(--violet-soft);display:flex;gap:12px;align-items:center}
+.newbies .stack{display:flex}
+.newbies .stack span{width:30px;height:30px;border-radius:50%;border:2px solid var(--violet-soft);margin-left:-8px;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:700}
+.newbies .stack span:first-child{margin-left:0}
+.newbies .txt{flex:1;font-size:13px;line-height:1.35}
+.newbies .txt b{display:block;font-size:14px}
+
+.day-label{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:18px 20px 8px}
+.act{margin:0 20px 10px;padding:14px;display:flex;gap:14px;cursor:pointer;text-align:left;width:calc(100% - 40px)}
+.act .emoji{width:52px;height:52px;border-radius:12px;display:grid;place-items:center;font-size:26px;flex:none}
+.act .body{flex:1;min-width:0}
+.act .when{font-size:12px;color:var(--magenta);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.act .name{font-weight:700;font-size:16px;margin:2px 0 3px}
+.act .where{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.act .meta{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px}
+.badge{border-radius:99px;padding:3px 8px;font-size:11px;font-weight:600}
+.badge.going{background:#e5f4e3;color:#2c6b28}
+.badge.full{background:#f1f1f3;color:#666}
+.badge.free{background:var(--violet-soft);color:var(--violet)}
+.badge.host{background:var(--magenta-soft);color:var(--magenta)}
+.spots{color:var(--muted)}
+.mini-av{display:flex}
+.mini-av span{width:20px;height:20px;border-radius:50%;border:1.5px solid #fff;margin-left:-6px;display:grid;place-items:center;color:#fff;font-size:8px;font-weight:700}
+.mini-av span:first-child{margin-left:0}
+.empty{text-align:center;padding:40px 30px;color:var(--muted)}
+.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:6px}
+
+.fab{position:absolute;right:18px;bottom:16px;z-index:8;background:var(--magenta);color:#fff;border-radius:99px;padding:14px 20px;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 8px 20px rgba(200,40,111,.35)}
+.fab svg{width:18px;height:18px;stroke:#fff}
+
+/* detail + create (full-screen pages over tabs) */
+.page{position:absolute;inset:0;background:var(--bg);z-index:20;display:none;flex-direction:column}
+.page.open{display:flex}
+.page .scroll{flex:1;overflow-y:auto;padding-bottom:110px}
+.page .scroll::-webkit-scrollbar{display:none}
+.pagebar{display:flex;align-items:center;gap:12px;padding:12px 16px;background:#fff;border-bottom:1px solid var(--line)}
+.pagebar b{font-size:17px;flex:1}
+.hero{height:150px;display:grid;place-items:center;font-size:64px}
+.detail-head{background:#fff;padding:18px 20px 20px}
+.detail-head h2{font-size:24px;line-height:1.2;margin:4px 0 8px}
+.info{background:#fff;margin-top:10px;padding:4px 20px}
+.info .row{padding:14px 0;gap:14px}
+.info .row svg.i{width:22px;height:22px}
+.info .row:last-child{border-bottom:0}
+.desc{background:#fff;margin-top:10px;padding:18px 20px;line-height:1.5;font-size:15px}
+.people{background:#fff;margin-top:10px;padding:18px 20px}
+.person{display:flex;align-items:center;gap:12px;padding:8px 0}
+.person .pa{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;flex:none}
+.person .pn{flex:1;font-size:15px}
+.person .pn small{display:block;color:var(--muted);font-size:12px}
+.bar{position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 20px 26px;display:flex;gap:10px;align-items:center}
+.bar .left{flex:1;font-size:13px}
+.bar .left b{display:block;font-size:15px}
+.safety{margin:10px 20px 0;padding:12px 14px;border-radius:10px;background:#fff7e6;color:#6b4b00;font-size:13px;line-height:1.4;display:flex;gap:10px}
+
+/* forms */
+.form{padding:18px 20px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}
+.field input,.field select,.field textarea{width:100%;background:#fff;border:1px solid #d9d9de;border-radius:10px;padding:12px;font-size:15px;outline:none}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--violet)}
+.field .two{display:flex;gap:10px}
+.field .two > *{flex:1;min-width:0}
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cat-grid button{background:#fff;border:1px solid #d9d9de;border-radius:10px;padding:10px 4px;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.cat-grid button span{font-size:22px}
+.cat-grid button.on{border-color:var(--magenta);background:var(--magenta-soft);font-weight:600}
+.switch-row{display:flex;justify-content:space-between;align-items:center;background:#fff;border:1px solid #d9d9de;border-radius:10px;padding:12px}
+.switch-row small{display:block;color:var(--muted);font-size:12px}
+.toggle{width:46px;height:28px;border-radius:99px;background:#d9d9de;position:relative;flex:none;transition:.2s}
+.toggle:after{content:"";position:absolute;left:3px;top:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:.2s}
+.toggle.on{background:var(--green)}
+.toggle.on:after{left:21px}
+
+/* bottom sheet */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:30;display:none}
+.scrim.open{display:block}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:24px 24px 0 0;z-index:31;padding:10px 20px 30px;transform:translateY(105%);transition:transform .25s ease;max-height:88%;overflow-y:auto}
+.sheet.open{transform:none}
+.sheet .grab{width:40px;height:5px;border-radius:99px;background:#ddd;margin:0 auto 14px}
+.sheet h3{font-size:20px;margin-bottom:4px}
+.opt{display:flex;align-items:center;gap:12px;padding:14px;border:1px solid #e1e1e5;border-radius:12px;margin-top:10px;width:100%;text-align:left}
+.opt.on{border-color:var(--violet);background:var(--violet-soft)}
+.opt .ico{font-size:22px}
+.opt .t{flex:1}
+.opt small{display:block;color:var(--muted);font-size:12px}
+
+.toast{position:absolute;left:50%;bottom:100px;transform:translateX(-50%) translateY(20px);background:#111;color:#fff;padding:11px 16px;border-radius:12px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:50;width:max-content;max-width:86%;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}
+
+/* chat (activity group) */
+.bubble{max-width:78%;padding:10px 13px;border-radius:16px;margin:6px 0;font-size:14px;line-height:1.4}
+.bubble.them{background:#fff;border-bottom-left-radius:4px}
+.bubble.me{background:var(--violet);color:#fff;margin-left:auto;border-bottom-right-radius:4px}
+.bubble small{display:block;font-size:11px;font-weight:700;margin-bottom:2px;color:var(--magenta)}
+.conv{display:flex;gap:14px;align-items:center;padding:14px 0;border-bottom:1px solid var(--line);width:100%;text-align:left}
+.conv .ce{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;font-size:24px;flex:none}
+.conv .ct{flex:1;min-width:0}
+.conv .ct b{display:block;font-weight:500;font-size:16px}
+.conv .ct span{color:var(--muted);font-size:14px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.concept-tag{position:absolute;top:8px;left:12px;z-index:60;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(91,76,224,.9);color:#fff;border-radius:99px;padding:3px 8px}
+@media (min-width:901px){.concept-tag{display:none}}
+@media (max-width:900px){.views{margin-top:24px}}
+.about-link{display:none}
+@media (max-width:900px){.about-link{display:inline}}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <!-- ===== Pitch (desktop only) ===== -->
+  <aside class="pitch">
+    <span class="tag">Concept mockup · Au pair proposal</span>
+    <h1>Meet people: activities around me</h1>
+    <p>Au pairs make friends during training week and in their LCC cluster, but new au pairs land every week and there is no easy way to meet them. After arrival, most of us barely open the app.</p>
+    <p>This new <b>Meet</b> tab turns the app into the place to find things to do with other au pairs nearby. It is built around <b>activities, not profiles</b>, so it stays friendly and safe rather than feeling like a dating app.</p>
+    <h3>Try it</h3>
+    <ul>
+      <li>Tap <b>Meet</b> in the bottom bar.</li>
+      <li>Open an activity and tap <b>Join</b>. A group chat appears in Chat.</li>
+      <li>Tap <b>+ Create</b> to post your own activity.</li>
+      <li>Tap the area name to plan a <b>trip</b>, for example a weekend in Chicago.</li>
+    </ul>
+    <h3>Why it helps Cultural Care</h3>
+    <ul>
+      <li>Daily reasons to open the app after arrival.</li>
+      <li>Faster integration for new arrivals, fewer lonely first weeks.</li>
+      <li>LCCs can post cluster meetings and see who is engaged.</li>
+    </ul>
+    <p class="hint">Concept by an au pair. Not an official Cultural Care product. All people and events are fictional.</p>
+  </aside>
+
+  <!-- ===== Phone ===== -->
+  <div class="phone">
+    <div class="screen" id="screen">
+      <span class="concept-tag">Concept mockup</span>
+      <div class="statusbar"><span>7:20</span><span class="island"></span><span class="right">●●●● <span class="batt">95</span></span></div>
+
+      <div class="views">
+
+        <!-- HOME -->
+        <section class="view" id="v-home">
+          <div class="home-head">
+            <div class="bell"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><b>47</b></div>
+            <div class="avatar">L</div>
+            <div><div class="name">Léo</div><div>Living with a Host Family</div></div>
+          </div>
+          <div class="pad section-title">To-do-list (4)</div>
+          <div class="todo">
+            <div class="card hot"><div class="ic hot"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8"><path d="M4 5h12v8H8l-4 3z"/><path d="M8 13v2h8l4 3V9h-4"/></svg></div><div class="txt"><b>Extension webinar</b>Attend now</div></div>
+            <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><circle cx="10" cy="8" r="4"/><path d="M3 20c0-4 3-6 7-6"/><path d="m15 17 2 2 4-4"/></svg></div><div class="txt"><b>Monthly check-in</b>Optional</div></div>
+            <div class="card"><div class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.6"><path d="m12 4 10 5-10 5L2 9z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg></div><div class="txt"><b>Workshop</b>Upcoming</div></div>
+          </div>
+
+          <!-- NEW home entry point -->
+          <div class="promo meet">
+            <b>3 activities this weekend near you</b>
+            <span>Hawks game, brunch and a park playdate in the Atlanta area.</span>
+            <div class="go"><button class="btn btn-primary" onclick="go('meet')">See activities</button></div>
+          </div>
+
+          <div class="card match">
+            <span class="pill">Matched</span>
+            <div style="font-size:22px;font-weight:700;margin:12px 0 14px">Your host family</div>
+            <div style="display:flex;border-top:1px solid #e3e1f5;padding-top:12px">
+              <div style="flex:1"><div class="muted" style="font-size:13px">Start</div><div style="font-size:19px">5 Feb, 2027</div></div>
+              <div style="flex:1"><div class="muted" style="font-size:13px">End</div><div style="font-size:19px">3 Feb, 2028</div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- FAMILIES (placeholder) -->
+        <section class="view" id="v-families">
+          <div class="pad" style="padding-top:60px">
+            <div class="h-title">Families</div>
+            <p class="muted" style="margin-top:10px">Existing section of the app, unchanged in this concept.</p>
+          </div>
+        </section>
+
+        <!-- MEET -->
+        <section class="view" id="v-meet">
+          <div class="meet-top">
+            <div class="titlebar">
+              <div>
+                <div class="h-title">Meet</div>
+                <button class="loc-btn" onclick="openSheet('loc')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5a7 7 0 1 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+                  <span id="loc-label">Atlanta area</span>
+                  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" style="width:14px;height:14px"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div id="trip-tag"></div>
+              </div>
+              <button class="icon-btn" onclick="toast('Notifications for new activities near you')" aria-label="Alerts">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg>
+              </button>
+            </div>
+            <div class="seg">
+              <button class="on" data-seg="all" onclick="setSeg('all')">Around me</button>
+              <button data-seg="mine" onclick="setSeg('mine')">My plans <span id="mine-count"></span></button>
+            </div>
+          </div>
+          <div class="chips" id="chips"></div>
+          <div id="feed"></div>
+          <div style="height:70px"></div>
+        </section>
+
+        <!-- CHAT -->
+        <section class="view" id="v-chat">
+          <div class="pad" style="padding-top:60px">
+            <div class="h-title">Your conversations</div>
+            <div class="section-title" style="margin-top:30px">Current host family</div>
+            <div class="conv"><div class="ce" style="background:#cfe3c4">🏡</div><div class="ct"><b>Host family</b><span>Match request was accepted by host family</span></div></div>
+            <div id="group-chats"></div>
+          </div>
+        </section>
+
+        <!-- EDUCATION -->
+        <section class="view" id="v-education">
+          <div class="pad" style="padding-top:60px">
+            <div class="h-title">Education</div>
+            <p class="muted" style="margin-top:10px">Your trainings and workshops will appear here. Existing section, unchanged.</p>
+          </div>
+        </section>
+
+        <!-- YOU -->
+        <section class="view" id="v-you">
+          <div class="you-head">
+            <div class="bell" style="top:10px"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.9 1.9 0 0 0 3.4 0"/></svg><b>47</b></div>
+            <div class="avatar">L</div>
+            <div style="flex:1"><div style="font-size:22px;font-weight:700">Léo</div><div>With a host family</div></div>
+            <button class="btn btn-dark" style="padding:9px 14px;font-size:14px">Edit profile</button>
+          </div>
+          <div class="pad">
+            <button class="row" style="width:100%;text-align:left" onclick="openSheet('privacy')">
+              <svg class="i" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="9" cy="8" r="3.5"/><circle cx="17" cy="9" r="2.5"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5"/><path d="M15 14c3 0 6 1.5 6 4"/></svg>
+              <div class="t">Meet settings<div class="s" style="color:var(--magenta)">New: who can see your plans</div></div>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg>
+            </button>
+            <div class="row"><svg class="i" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5V14"/><circle cx="12" cy="17" r=".6"/></svg><div class="t">Support</div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="6" y="3" width="13" height="18" rx="1"/><path d="M4 7h3M4 12h3M4 17h3"/></svg><div class="t">Contact details</div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="7" y="3" width="12" height="15" rx="2"/><path d="M5 7v12a2 2 0 0 0 2 2h9M10 8h6M10 12h6"/></svg><div class="t">Documents<div class="s" style="color:var(--magenta)">Upload documents</div></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <div class="row"><svg class="i" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 3 4 6v6c0 5 4 8 8 9 4-1 8-4 8-9V6z"/></svg><div class="t">Insurance</div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+            <p class="muted about-link" style="display:block;font-size:13px;margin-top:22px;line-height:1.5">This is a concept mockup made by an au pair to propose a new "Meet" tab. Not an official Cultural Care product. All people and events are fictional.</p>
+          </div>
+        </section>
+      </div>
+
+      <button class="fab" id="fab" onclick="openCreate()" style="display:none;bottom:96px">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>Create
+      </button>
+
+      <!-- TAB BAR -->
+      <nav class="tabbar">
+        <button class="tab" data-tab="home" onclick="go('home')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M4 10.5 12 4l8 6.5V20h-5v-6H9v6H4z"/></svg>Home</button>
+        <button class="tab" data-tab="families" onclick="go('families')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M4 10 12 4l8 6v10H4z"/><path d="M12 17s-3.5-2.2-3.5-4.3A1.8 1.8 0 0 1 12 12a1.8 1.8 0 0 1 3.5.7C15.5 14.8 12 17 12 17z"/></svg>Families</button>
+        <button class="tab new" data-tab="meet" onclick="go('meet')"><span class="dot">NEW</span><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="8" cy="8" r="3"/><circle cx="16.5" cy="9" r="2.5"/><path d="M2.5 19c0-3.2 2.5-5.5 5.5-5.5s5.5 2.3 5.5 5.5"/><path d="M14 14c.8-.4 1.6-.5 2.5-.5 2.8 0 5 2 5 5"/></svg>Meet</button>
+        <button class="tab" data-tab="chat" onclick="go('chat')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M4 5h16v11h-7l-3 3-1-3H4z"/></svg>Chat</button>
+        <button class="tab" data-tab="education" onclick="go('education')"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="m12 4 10 5-10 5L2 9z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg>Education</button>
+        <button class="tab" data-tab="you" onclick="go('you')"><span class="me">L</span>You</button>
+      </nav>
+
+      <!-- ACTIVITY DETAIL -->
+      <div class="page" id="p-detail">
+        <div class="pagebar">
+          <button class="icon-btn" onclick="closePage('p-detail')" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m15 6-6 6 6 6"/></svg></button>
+          <b>Activity</b>
+          <button class="icon-btn" onclick="toast('Share link copied')" aria-label="Share"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M5 13v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg></button>
+        </div>
+        <div class="scroll" id="detail-body"></div>
+        <div class="bar" id="detail-bar"></div>
+      </div>
+
+      <!-- CREATE -->
+      <div class="page" id="p-create">
+        <div class="pagebar">
+          <button class="icon-btn" onclick="closePage('p-create')" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+          <b>Create an activity</b>
+        </div>
+        <div class="scroll">
+          <form class="form" id="create-form" onsubmit="submitCreate(event)">
+            <div class="field"><label>What kind of activity?</label><div class="cat-grid" id="cat-grid"></div></div>
+            <div class="field"><label for="f-title">Title</label><input id="f-title" required placeholder="e.g. Hawks vs. Celtics game"></div>
+            <div class="field"><label>When</label><div class="two"><input id="f-date" type="date" required><input id="f-time" type="time" value="19:00" required></div></div>
+            <div class="field"><label for="f-area">Area</label><select id="f-area"></select></div>
+            <div class="field"><label for="f-place">Place or address</label><input id="f-place" required placeholder="e.g. State Farm Arena, 1 State Farm Dr"></div>
+            <div class="field"><label for="f-desc">Description</label><textarea id="f-desc" rows="3" placeholder="Meeting point, what to bring, language..."></textarea></div>
+            <div class="field"><label>Budget and group size</label><div class="two"><input id="f-budget" type="number" min="0" placeholder="Budget in $"><input id="f-max" type="number" min="2" max="50" value="6" placeholder="Max people"></div></div>
+            <div class="field"><div class="switch-row"><div>Kids welcome<small>Playdates with host kids</small></div><button type="button" class="toggle" onclick="this.classList.toggle('on')"></button></div></div>
+            <div class="field"><div class="switch-row"><div>Visible to my cluster only<small>Otherwise all au pairs in the area</small></div><button type="button" class="toggle" onclick="this.classList.toggle('on')"></button></div></div>
+            <button class="btn btn-primary btn-block" type="submit">Publish activity</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- GROUP CHAT -->
+      <div class="page" id="p-chat">
+        <div class="pagebar">
+          <button class="icon-btn" onclick="closePage('p-chat')" aria-label="Back"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="m15 6-6 6 6 6"/></svg></button>
+          <b id="chat-title">Group</b>
+        </div>
+        <div class="scroll" style="padding:14px 16px 100px" id="chat-body"></div>
+        <div class="bar"><input id="chat-input" style="flex:1;border:1px solid #d9d9de;border-radius:99px;padding:11px 14px;font-size:15px;outline:none" placeholder="Message the group"><button class="btn btn-primary" style="padding:11px 16px" onclick="sendMsg()">Send</button></div>
+      </div>
+
+      <!-- SHEETS -->
+      <div class="scrim" id="scrim" onclick="closeSheet()"></div>
+      <div class="sheet" id="sheet"></div>
+      <div class="toast" id="toast"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+const day = n => { const d = new Date(TODAY); d.setDate(d.getDate()+n); return d; };
+const nextDow = (dow, extraWeeks=0) => { const d = new Date(TODAY); let diff=(dow - d.getDay() + 7) % 7; if(diff===0) diff=7; d.setDate(d.getDate()+diff+extraWeeks*7); return d; };
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+
+const CATS = {
+  sports:{label:'Sports', e:'🏀', bg:'#ffe9d6'},
+  food:{label:'Food & drinks', e:'🥞', bg:'#fff1c9'},
+  party:{label:'Night out', e:'🎉', bg:'#efe2ff'},
+  kids:{label:'Playdate', e:'🧸', bg:'#dff3ff'},
+  outdoor:{label:'Outdoors', e:'🌳', bg:'#e1f5dd'},
+  culture:{label:'Culture', e:'🎨', bg:'#ffe1ea'},
+  travel:{label:'Day trip', e:'🚗', bg:'#e6e9ff'},
+  lcc:{label:'LCC meeting', e:'📣', bg:'#fbe7f0'},
+};
+const COLORS = ['#e07a5f','#3d85c6','#81b29a','#9b5de5','#f2a541','#2a9d8f','#e76f51','#5b4ce0','#c8286f','#6d597a'];
+const PEOPLE = [
+  ['Ana','Brazil','Arrived 3 weeks ago'],['Sofie','Denmark','Cluster: Decatur'],['Mia','Germany','Arrived this week'],
+  ['Lucía','Colombia','Cluster: Marietta'],['Emma','France','Cluster: Decatur'],['Thandi','South Africa','Arrived 2 months ago'],
+  ['Jakub','Poland','Cluster: Alpharetta'],['Nina','Austria','Arrived this week'],['Chloé','Belgium','Cluster: Sandy Springs'],
+  ['Kaito','Japan','Cluster: Roswell'],['Valentina','Mexico','Arrived 5 months ago'],['Ella','Sweden','Cluster: Lincoln Park'],
+  ['Marta','Spain','Cluster: Evanston'],['Leah','Australia','Arrived 1 month ago'],
+];
+const AREAS = ['Atlanta area','Chicago area','New York City area','Boston area','Washington DC area','San Francisco Bay Area'];
+
+let activities = [
+  {id:1, cat:'sports', title:'Hawks game: cheap seats together', area:'Atlanta area', date:nextDow(6), time:'19:30', place:'State Farm Arena, 1 State Farm Dr, Atlanta', budget:25, max:8, host:0, going:[0,1,2,4,6], desc:'Let\'s grab upper-deck tickets together (around $25). Meet at the main entrance at 7:00 PM. First NBA game for a few of us!'},
+  {id:2, cat:'food', title:'Sunday brunch & new arrivals welcome', area:'Atlanta area', date:nextDow(0), time:'11:00', place:'Ponce City Market, 675 Ponce de Leon Ave NE', budget:20, max:10, host:4, going:[4,2,7,3], desc:'Monthly brunch to welcome au pairs who just arrived. Come say hi, ask questions about life here, or just eat pancakes.', welcome:true},
+  {id:3, cat:'kids', title:'Park playdate with host kids (3 to 6 yo)', area:'Atlanta area', date:day(2), time:'10:00', place:'Piedmont Park playground, 12th St entrance', budget:0, max:6, host:3, going:[3,8], desc:'Bring your host kids, snacks and sunscreen. Great way for the kids to play while we chat.', kids:true},
+  {id:4, cat:'outdoor', title:'Stone Mountain sunrise hike', area:'Atlanta area', date:nextDow(6,1), time:'06:30', place:'Stone Mountain Park, Walk-Up Trail', budget:20, max:6, host:6, going:[6,9,1,5,10,0], desc:'Early hike to watch the sunrise from the top. Parking is $20 per car, we can carpool from Decatur.'},
+  {id:5, cat:'party', title:'Thanksgiving Friendsgiving potluck', area:'Atlanta area', date:day(5), time:'18:00', place:'Clubhouse, Midtown (address shared after joining)', budget:0, max:15, host:5, going:[5,0,1,3,4,8,9], desc:'Bring a dish from your home country. Music, games, and lots of food.'},
+  {id:6, cat:'lcc', title:'Decatur cluster meeting: bowling', area:'Atlanta area', date:nextDow(3,1), time:'18:30', place:'Midtown Bowl, 1936 Piedmont Cir NE', budget:0, max:30, host:-1, going:[1,4,2,7], desc:'Monthly cluster meeting organized by your LCC. Counts toward your cluster meeting attendance. Bowling is covered.', official:true},
+  {id:7, cat:'culture', title:'High Museum free second Sunday', area:'Atlanta area', date:nextDow(0,1), time:'13:00', place:'High Museum of Art, 1280 Peachtree St NE', budget:0, max:6, host:8, going:[8], desc:'Free entry on the second Sunday. We can grab coffee after.'},
+  {id:11, cat:'food', title:'Deep-dish pizza night', area:'Chicago area', date:nextDow(5,1), time:'19:00', place:'Lou Malnati\'s, 439 N Wells St, Chicago', budget:25, max:8, host:11, going:[11,12,13], desc:'Visitors welcome! Pizza then a walk to see the Bean at night.'},
+  {id:12, cat:'outdoor', title:'Architecture river walk', area:'Chicago area', date:nextDow(6,1), time:'10:00', place:'Michigan Ave Bridge, Chicago Riverwalk', budget:0, max:10, host:12, going:[12,11], desc:'Free self-guided walk along the river. About 2 hours, comfy shoes.'},
+  {id:13, cat:'party', title:'Saturday night in Wicker Park', area:'Chicago area', date:nextDow(6,1), time:'21:00', place:'Wicker Park, meeting at the Damen Blue Line', budget:30, max:8, host:13, going:[13,12,11,0], desc:'Bars and maybe dancing. 21+ only for this one.'},
+];
+let joined = new Set([6]);
+let createdByMe = new Set();
+let chats = {6:[{who:4,t:'See you all at the bowling night!'}]};
+let state = { tab:'meet', seg:'all', cat:'all', area:'Atlanta area', trip:null, createCat:'sports' };
+
+/* ---------------- helpers ---------------- */
+const fmtDay = d => d.toLocaleDateString('en-US',{weekday:'long', month:'short', day:'numeric'});
+const fmtShort = d => d.toLocaleDateString('en-US',{weekday:'short', month:'short', day:'numeric'});
+const fmtTime = t => { const [h,m]=t.split(':').map(Number); const ap=h>=12?'PM':'AM'; return ((h%12)||12)+(m?':'+String(m).padStart(2,'0'):'')+' '+ap; };
+const rel = d => { const n=Math.round((d-TODAY)/864e5); return n===0?'Today':n===1?'Tomorrow':fmtDay(d); };
+const person = i => i===-2 ? ['You','','Atlanta area'] : PEOPLE[i];
+const color = i => i===-2 ? 'linear-gradient(135deg,#d9a77a,#8a5a3b)' : COLORS[i%COLORS.length];
+const goingCount = a => a.going.length + (joined.has(a.id) && !a.going.includes(-2) ? 1 : 0);
+const $ = id => document.getElementById(id);
+function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* ---------------- navigation ---------------- */
+function go(tab){
+  state.tab=tab;
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='v-'+tab));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  $('fab').style.display = tab==='meet' ? 'flex' : 'none';
+  if(tab==='meet') renderFeed();
+  if(tab==='chat') renderChats();
+  const tag=document.querySelector('.tab.new .dot'); if(tab==='meet' && tag) tag.remove();
+}
+function closePage(id){ $(id).classList.remove('open'); if(state.tab==='meet') renderFeed(); if(state.tab==='chat') renderChats(); }
+
+/* ---------------- feed ---------------- */
+function setSeg(s){ state.seg=s; document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on', b.dataset.seg===s)); renderFeed(); }
+function renderChips(){
+  const items=[['all','All'],['week','This weekend'],['free','Free'],...Object.entries(CATS).map(([k,v])=>[k,v.e+' '+v.label])];
+  $('chips').innerHTML = items.map(([k,l])=>`<button class="chip ${state.cat===k?'on':''}" onclick="state.cat='${k}';renderChips();renderFeed()">${l}</button>`).join('');
+}
+function currentArea(){ return state.trip ? state.trip.area : state.area; }
+function renderFeed(){
+  const area=currentArea();
+  $('loc-label').textContent = area;
+  $('trip-tag').innerHTML = state.trip ? `<span class="trip">Trip · ${fmtShort(state.trip.from)} to ${fmtShort(state.trip.to)}</span>` : '';
+  const mineCount = activities.filter(a=>joined.has(a.id)||createdByMe.has(a.id)).length;
+  $('mine-count').textContent = mineCount ? '('+mineCount+')' : '';
+
+  let list = activities.filter(a=>a.date>=TODAY);
+  if(state.seg==='mine') list = list.filter(a=>joined.has(a.id)||createdByMe.has(a.id));
+  else {
+    list = list.filter(a=>a.area===area);
+    if(state.trip) list = list.filter(a=>a.date>=state.trip.from && a.date<=state.trip.to);
+  }
+  if(state.cat==='free') list=list.filter(a=>!a.budget);
+  else if(state.cat==='week'){ const sat=nextDow(6), sun=new Date(sat); sun.setDate(sun.getDate()+1); const fri=new Date(sat); fri.setDate(fri.getDate()-1); list=list.filter(a=>a.date>=fri && a.date<=sun); }
+  else if(state.cat!=='all') list=list.filter(a=>a.cat===state.cat);
+  list.sort((a,b)=>a.date-b.date || a.time.localeCompare(b.time));
+
+  let html='';
+  if(state.seg==='all' && !state.trip && area==='Atlanta area' && state.cat==='all'){
+    html += `<div class="newbies"><div class="stack"><span style="background:${COLORS[2]}">M</span><span style="background:${COLORS[7]}">N</span><span style="background:${COLORS[0]}">+4</span></div>
+      <div class="txt"><b>6 au pairs arrived near you this week</b>Invite them to an activity or join the welcome brunch.</div></div>`;
+  }
+  if(state.trip && state.seg==='all'){
+    html += `<div class="newbies" style="background:#e6e9ff"><div style="font-size:26px">🧳</div><div class="txt"><b>Visiting ${area.replace(' area','')}</b>Showing activities during your trip. Local au pairs can see you're in town if you create or join one.</div><button class="btn btn-ghost" style="padding:7px 12px;font-size:12px" onclick="endTrip()">End trip</button></div>`;
+  }
+  if(!list.length){
+    html += `<div class="empty"><b>${state.seg==='mine'?'No plans yet':'Nothing planned here yet'}</b>${state.seg==='mine'?'Join an activity and it will show up here.':'Be the first one and create an activity. Other au pairs in the area will be notified.'}<br><br><button class="btn btn-primary" onclick="${state.seg==='mine'?"setSeg('all')":'openCreate()'}">${state.seg==='mine'?'Browse activities':'Create an activity'}</button></div>`;
+  }
+  let last='';
+  list.forEach(a=>{
+    const lbl=rel(a.date); if(lbl!==last){ html+=`<div class="day-label">${lbl}</div>`; last=lbl; }
+    const c=CATS[a.cat], n=goingCount(a), full=n>=a.max, me=joined.has(a.id), host=createdByMe.has(a.id);
+    const avs=a.going.slice(0,3).map(i=>`<span style="background:${color(i)}">${person(i)[0][0]}</span>`).join('');
+    html+=`<button class="card act" onclick="openDetail(${a.id})">
+      <div class="emoji" style="background:${c.bg}">${c.e}</div>
+      <div class="body">
+        <div class="when">${fmtTime(a.time)} · ${c.label}</div>
+        <div class="name">${a.title}</div>
+        <div class="where">📍 ${a.place}</div>
+        <div class="meta"><div class="mini-av">${avs}</div><span class="spots">${n}/${a.max} going</span>
+          ${host?'<span class="badge host">Hosting</span>':me?'<span class="badge going">✓ Going</span>':full?'<span class="badge full">Full</span>':''}
+          ${!a.budget?'<span class="badge free">Free</span>':`<span class="spots">· ~$${a.budget}</span>`}
+          ${a.official?'<span class="badge host">LCC</span>':''}
+        </div>
+      </div></button>`;
+  });
+  $('feed').innerHTML=html;
+}
+
+/* ---------------- detail ---------------- */
+function openDetail(id){
+  const a=activities.find(x=>x.id===id), c=CATS[a.cat], n=goingCount(a), me=joined.has(id), host=createdByMe.has(id), full=n>=a.max && !me;
+  const hostP = a.host===-1 ? ['Your LCC','Local Childcare Coordinator','Decatur cluster'] : person(a.host);
+  let ppl = a.going.map(i=>{const p=person(i);return `<div class="person"><div class="pa" style="background:${color(i)}">${p[0][0]}</div><div class="pn">${p[0]}${i===a.host?' <span class="badge host">Host</span>':''}<small>${p[1]?p[1]+' · ':''}${p[2]}</small></div></div>`}).join('');
+  if(me && !a.going.includes(-2)) ppl += `<div class="person"><div class="pa" style="background:${color(-2)}">L</div><div class="pn">You<small>Just joined</small></div></div>`;
+  $('detail-body').innerHTML = `
+    <div class="hero" style="background:${c.bg}">${c.e}</div>
+    <div class="detail-head">
+      <div class="when" style="color:var(--magenta);font-weight:700;font-size:13px;text-transform:uppercase">${c.label}${a.official?' · Official LCC event':''}${a.welcome?' · New arrivals welcome':''}</div>
+      <h2>${a.title}</h2>
+      <div class="muted" style="font-size:14px">Hosted by <b style="color:var(--ink)">${hostP[0]}</b></div>
+    </div>
+    <div class="info">
+      <div class="row"><svg class="i" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><div class="t">${fmtDay(a.date)}<div class="s">${fmtTime(a.time)}</div></div><button class="muted" style="font-size:13px;color:var(--violet);font-weight:600" onclick="toast('Added to your calendar')">Add to calendar</button></div>
+      <div class="row"><svg class="i" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 21s-7-6.2-7-11.5a7 7 0 1 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><div class="t">${a.place}<div class="s">${a.area}</div></div><button style="font-size:13px;color:var(--violet);font-weight:600" onclick="toast('Opening Maps')">Directions</button></div>
+      <div class="row"><svg class="i" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg><div class="t">${a.budget?'About $'+a.budget+' per person':'Free'}<div class="s">Everyone pays for themselves</div></div></div>
+      <div class="row"><svg class="i" viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="9" cy="8" r="3.5"/><path d="M3 19c0-3 3-5 6-5s6 2 6 5"/><circle cx="17" cy="9" r="2.5"/><path d="M15 14c3 0 6 1.5 6 4"/></svg><div class="t">${n} of ${a.max} spots taken<div class="s">${a.kids?'Kids welcome':'Au pairs only'}</div></div></div>
+    </div>
+    <div class="desc">${a.desc}</div>
+    <div class="safety"><span>🛡️</span><span>Meet in public places, tell your host family where you go, and report anything that feels wrong. Your LCC can see activities in your cluster.</span></div>
+    <div class="people"><div style="font-weight:700;margin-bottom:6px">Who's going</div>${ppl}</div>`;
+  $('detail-bar').innerHTML = host
+    ? `<div class="left"><b>You're hosting</b>${n} going</div><button class="btn btn-ghost" onclick="toast('Edit activity')">Edit</button><button class="btn btn-primary" onclick="openChat(${id})">Group chat</button>`
+    : me
+    ? `<div class="left"><b>✓ You're going</b>${n}/${a.max} spots</div><button class="btn btn-ghost" onclick="leave(${id})">Leave</button><button class="btn btn-primary" onclick="openChat(${id})">Group chat</button>`
+    : full
+    ? `<div class="left"><b>This activity is full</b>Get notified if a spot opens</div><button class="btn btn-dark" onclick="toast('You\\'re on the waitlist')">Join waitlist</button>`
+    : `<div class="left"><b>${a.max-n} spot${a.max-n>1?'s':''} left</b>${a.budget?'~$'+a.budget:'Free'}</div><button class="btn btn-primary" style="padding:12px 30px" onclick="join(${id})">Join</button>`;
+  $('p-detail').classList.add('open');
+  $('p-detail').querySelector('.scroll').scrollTop=0;
+}
+function join(id){ joined.add(id); if(!chats[id]) chats[id]=[{who:activities.find(a=>a.id===id).host,t:'Welcome! Glad you can make it 🙌'}]; openDetail(id); toast('You joined! Group chat added to Chat'); }
+function leave(id){ joined.delete(id); openDetail(id); toast('You left this activity'); }
+
+/* ---------------- chat ---------------- */
+function renderChats(){
+  const ids=[...new Set([...joined,...createdByMe])].filter(id=>chats[id]);
+  $('group-chats').innerHTML = ids.length ? `<div class="section-title" style="margin-top:30px">Activity groups <span class="badge host" style="vertical-align:middle">New</span></div>` + ids.map(id=>{
+    const a=activities.find(x=>x.id===id), c=CATS[a.cat], m=chats[id][chats[id].length-1], p=m.who===-2?'You':m.who===-1?'LCC':person(m.who)[0];
+    return `<button class="conv" onclick="openChat(${id})"><div class="ce" style="background:${c.bg}">${c.e}</div><div class="ct"><b>${a.title}</b><span>${p}: ${m.t}</span></div><span class="muted" style="font-size:12px">${fmtShort(a.date)}</span></button>`;
+  }).join('') : '';
+}
+let chatId=null;
+function openChat(id){
+  chatId=id; const a=activities.find(x=>x.id===id);
+  $('chat-title').textContent=a.title;
+  renderChatBody();
+  $('p-chat').classList.add('open');
+}
+function renderChatBody(){
+  const a=activities.find(x=>x.id===chatId);
+  $('chat-body').innerHTML = `<div class="muted" style="text-align:center;font-size:12px;margin:6px 0 14px">Group for ${a.title} · ${fmtShort(a.date)}<br>This chat closes 2 days after the activity.</div>` +
+    chats[chatId].map(m=>m.who===-2?`<div class="bubble me">${m.t}</div>`:`<div class="bubble them"><small>${m.who===-1?'LCC':person(m.who)[0]}</small>${m.t}</div>`).join('');
+}
+function sendMsg(){ const i=$('chat-input'); if(!i.value.trim())return; chats[chatId].push({who:-2,t:i.value.trim()}); i.value=''; renderChatBody(); }
+$('chat-input').addEventListener('keydown',e=>{ if(e.key==='Enter') sendMsg(); });
+
+/* ---------------- create ---------------- */
+function openCreate(){
+  $('cat-grid').innerHTML = Object.entries(CATS).filter(([k])=>k!=='lcc').map(([k,v])=>`<button type="button" class="${state.createCat===k?'on':''}" onclick="state.createCat='${k}';openCreate()"><span>${v.e}</span>${v.label}</button>`).join('');
+  const sel=$('f-area'); const cur=currentArea();
+  if(!sel.options.length) sel.innerHTML = AREAS.map(a=>`<option>${a}</option>`).join('');
+  if(!$('p-create').classList.contains('open')){ sel.value=cur; $('f-date').value=iso(state.trip?state.trip.from:nextDow(6)); }
+  $('p-create').classList.add('open');
+}
+function submitCreate(e){
+  e.preventDefault();
+  const id=Date.now();
+  const [y,m,d]=$('f-date').value.split('-').map(Number);
+  activities.push({id, cat:state.createCat, title:$('f-title').value, area:$('f-area').value, date:new Date(y,m-1,d), time:$('f-time').value, place:$('f-place').value, budget:Number($('f-budget').value)||0, max:Number($('f-max').value)||6, host:-2, going:[-2], desc:$('f-desc').value||'No description yet.'});
+  createdByMe.add(id); joined.add(id); chats[id]=[{who:-2,t:'Hi everyone! Excited for this 😊'}];
+  $('create-form').reset(); $('f-time').value='19:00'; $('f-max').value=6;
+  closePage('p-create'); state.cat='all'; renderChips(); renderFeed();
+  toast('Published! Au pairs nearby will be notified');
+  setTimeout(()=>openDetail(id),300);
+}
+
+/* ---------------- sheets ---------------- */
+function openSheet(kind){
+  const s=$('sheet');
+  if(kind==='loc'){
+    const tripFrom = iso(state.trip?state.trip.from:nextDow(5,1)), tripTo = iso(state.trip?state.trip.to:nextDow(0,2));
+    s.innerHTML = `<div class="grab"></div><h3>Where are you?</h3><p class="muted" style="font-size:14px">See and create activities in your home area, or plan ahead for a trip.</p>
+      <button class="opt ${!state.trip?'on':''}" onclick="endTrip();closeSheet()"><span class="ico">🏠</span><div class="t"><b>Home area</b><small>${state.area} · based on your host family</small></div></button>
+      <div class="opt ${state.trip?'on':''}" style="display:block">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px"><span class="ico">🧳</span><div class="t"><b>I'm traveling</b><small>Temporary location for specific dates</small></div></div>
+        <div class="field"><label>Destination</label><select id="t-area">${AREAS.filter(a=>a!==state.area).map(a=>`<option ${state.trip&&state.trip.area===a?'selected':''}>${a}</option>`).join('')}</select></div>
+        <div class="field"><label>Dates</label><div class="two"><input type="date" id="t-from" value="${tripFrom}"><input type="date" id="t-to" value="${tripTo}"></div></div>
+        <button class="btn btn-primary btn-block" onclick="setTrip()">Show activities there</button>
+      </div>`;
+  } else if(kind==='privacy'){
+    s.innerHTML = `<div class="grab"></div><h3>Meet settings</h3><p class="muted" style="font-size:14px;margin-bottom:6px">You stay in control of what others see.</p>
+      ${[['Show my first name and country only','No photos, age or bio on activities',1],['Who can see my plans','All au pairs in my area',0],['Notify me about new activities','Max 1 summary per day',1],['Notify me when au pairs arrive nearby','Helps welcome new arrivals',1],['Let my LCC see my activities','For safety and cluster engagement',1]].map(([t,d,on])=>`<div class="switch-row" style="margin-top:10px"><div>${t}<small>${d}</small></div><button type="button" class="toggle ${on?'on':''}" onclick="this.classList.toggle('on')"></button></div>`).join('')}
+      <button class="btn btn-dark btn-block" style="margin-top:18px" onclick="closeSheet();toast('Settings saved')">Done</button>`;
+  }
+  $('scrim').classList.add('open'); requestAnimationFrame(()=>s.classList.add('open'));
+}
+function closeSheet(){ $('sheet').classList.remove('open'); $('scrim').classList.remove('open'); }
+function setTrip(){
+  const [fy,fm,fd]=$('t-from').value.split('-').map(Number), [ty,tm,td]=$('t-to').value.split('-').map(Number);
+  let from=new Date(fy,fm-1,fd), to=new Date(ty,tm-1,td); if(to<from) [from,to]=[to,from];
+  state.trip={area:$('t-area').value, from, to}; state.seg='all'; state.cat='all';
+  document.querySelectorAll('.seg button').forEach(b=>b.classList.toggle('on', b.dataset.seg==='all'));
+  closeSheet(); renderChips(); renderFeed(); toast('Trip mode: '+state.trip.area);
+}
+function endTrip(){ state.trip=null; renderFeed(); }
+
+/* ---------------- init ---------------- */
+renderChips(); go('home');
+</script>
+</body>
+</html>
